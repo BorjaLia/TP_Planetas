@@ -70,6 +70,28 @@ public class ShipController : MonoBehaviour
         //        rb.AddRelativeForce(transform.forward * speedNormal);
         //    }
         //}
+        Vector3 dir = this.transform.forward;
+
+        if (isCrouched) dir -= transform.up;
+        if (isJumping) dir += transform.up;
+
+        dir.Normalize();
+
+        speed = (isBoosting ? speedFast : speedNormal);
+        float linearForceMultiplier = 1.0f;
+        print(rb.linearVelocity.sqrMagnitude);
+        if (rb.linearVelocity.sqrMagnitude < 2000)
+        {
+            rb.AddForce(dir * speed * linearForceMultiplier, ForceMode.Acceleration);
+        }
+
+        float pitchForce = -look.y * mouseSensitivityY;
+        float yawForce = look.x * mouseSensitivityX;
+
+        Vector3 torque = (transform.right * pitchForce) + (transform.up * yawForce);
+
+        float torqueMultiplier = 0.25f;
+        rb.AddTorque(torque * torqueMultiplier, ForceMode.Acceleration);
     }
 
     void MouseLook()
@@ -164,9 +186,12 @@ public class ShipController : MonoBehaviour
 
     public void OnSwitchMode(InputAction.CallbackContext context)
     {
-        isKinematic = context.performed;
-        rb.isKinematic = isKinematic;
-        print("Kinematic: " + isKinematic);
+        if (context.performed)
+        {
+            isKinematic = !isKinematic;
+            rb.isKinematic = isKinematic;
+            print("Kinematic: " + isKinematic);
+        }
     }
 
     public void OnBoosters(InputAction.CallbackContext context)
